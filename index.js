@@ -38,7 +38,6 @@ async function run() {
         app.get('/cycles', async (req, res) => {
             const cursor = cycleCollection.find({})
             const page = req.query.page;
-            console.log(req.query)
             const size = parseInt(req.query.size);
             let products;
             const count = await cursor.count();
@@ -60,7 +59,10 @@ async function run() {
         app.get('/cycles/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const singleProduct = await cycleCollection.findOne(query);
+            const options = {
+                projection: { _id: 0 }
+            }
+            const singleProduct = await cycleCollection.findOne(query, options);
             res.send(singleProduct);
         });
 
