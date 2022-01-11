@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const express = require('express');
-const stripe = require('stripe')('sk_test_51K93ltBcGooWtax9GkAGLr4DEmlZNpm6tUa0SLImClKgGZFpYehHv9XhvOAf5escrbFzko1UJ1bbecG02hdCCZZu00K0yXRB8H');
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const port = process.env.PORT || 5000;
 const ObjectId = require('mongodb').ObjectId;
 const fileUpload = require('express-fileupload');
@@ -78,19 +78,7 @@ async function run() {
             res.send(await cartCollection.find({}).toArray());
         });
 
-        // set payment status
-        app.put('/cartProducts/:email', async (req, res) => {
-            const email = req.params.email;
-            const payment = req.body;
-            const filter = { email: email };
-            const updateDoc = {
-                $set: {
-                    payment: payment
-                }
-            };
-            const result = await cartCollection.updateMany(filter, updateDoc);
-            res.json(result);
-        })
+
 
         // get cart product with email
         app.get('/myCart/:email', async (req, res) => {
@@ -103,7 +91,7 @@ async function run() {
         // delete cart api
         app.delete('/myCart/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: ObjectId(id) };
+            const query = { _id: id };
             const result = await cartCollection.deleteOne(query);
             res.json(result);
         });
@@ -191,6 +179,20 @@ async function run() {
                 payment_method_types: ['card']
             });
             res.json({ clientSecret: paymentIntent.client_secret })
+        });
+
+        // set payment status
+        app.put('/cartProducts/:email', async (req, res) => {
+            const email = req.params.email;
+            const payment = req.body;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    payment: payment
+                }
+            };
+            const result = await cartCollection.updateMany(filter, updateDoc);
+            res.json(result);
         })
     }
 
